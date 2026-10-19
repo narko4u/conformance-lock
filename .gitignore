@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# signing material never enters the repository, not even in a branch
+*.hex
+signing-key*
+*-key.json
+keys/
+private/
+
+# local published output is generated, not committed
+published/
