@@ -1,0 +1,73 @@
+{
+  "format": "vectorlock/v1",
+  "corpus_id": "pqc-verifier-conformance",
+  "version": "0.1.0",
+  "created_at": "2026-10-19T23:35:12Z",
+  "leaf_algorithm": "sha256(0x00 || id || 0x00 || file_sha256)",
+  "node_algorithm": "sha256(0x01 || left || right)",
+  "count": 10,
+  "total_bytes": 90698,
+  "merkle_root": "d22923ac17d0f1e2244f5dc2dc9913e4c95c446a5b6daa947fe21447c6a38b19",
+  "files": [
+    {
+      "id": "pqc-atk-01.json",
+      "path": "pqc-atk-01.json",
+      "sha256": "8897197c152426f071d32eb594b92d06a4ef950fafe2b2f772bf5f0d790e5bb6",
+      "bytes": 9522
+    },
+    {
+      "id": "pqc-atk-02.json",
+      "path": "pqc-atk-02.json",
+      "sha256": "7e9c80d2d2d2334dc71bd00f999eeb8b0ef5916fd5a51f9ddcf3a67593cf3889",
+      "bytes": 9518
+    },
+    {
+      "id": "pqc-atk-03.json",
+      "path": "pqc-atk-03.json",
+      "sha256": "75962ecc091728cb28f5c308ba52a734883f7fc730bed2418431aaec22fd8612",
+      "bytes": 9527
+    },
+    {
+      "id": "pqc-atk-04.json",
+      "path": "pqc-atk-04.json",
+      "sha256": "d930615a36f6e696b87982db502c140dcd750ae2832033bcbda79320072eea97",
+      "bytes": 9517
+    },
+    {
+      "id": "pqc-atk-05.json",
+      "path": "pqc-atk-05.json",
+      "sha256": "71b32366a86a6e635ce4f325c4d4490bdc5fca2b045274260fa59bb04e509924",
+      "bytes": 9524
+    },
+    {
+      "id": "pqc-atk-06.json",
+      "path": "pqc-atk-06.json",
+      "sha256": "81fd741c6a43dba99919e6ca27d04fd443deb7910a2db9985a27aea697b46f76",
+      "bytes": 9533
+    },
+    {
+      "id": "pqc-atk-07.json",
+      "path": "pqc-atk-07.json",
+      "sha256": "05c5e5779271cd181bcf0a2f5ee7de220051ca96939d1f0e518826bdd99fdd71",
+      "bytes": 9544
+    },
+    {
+      "id": "pqc-atk-08.json",
+      "path": "pqc-atk-08.json",
+      "sha256": "d28b6b0f56ed15d55768d6a39ba64555c7af274a437973b83882d6aa318ee6be",
+      "bytes": 9518
+    },
+    {
+      "id": "pqc-ctl-01.json",
+      "path": "pqc-ctl-01.json",
+      "sha256": "d082de6896f7ee71e0d44373b0a7b6f04316c7d5e4acce6ef2db546dfb7a1daa",
+      "bytes": 9511
+    },
+    {
+      "id": "pqc-ctl-02.json",
+      "path": "pqc-ctl-02.json",
+      "sha256": "ae2977c3331fc36ae45696bf806dbaa1d98f2cb2d4d492054cda3036c079207d",
+      "bytes": 4984
+    }
+  ]
+}

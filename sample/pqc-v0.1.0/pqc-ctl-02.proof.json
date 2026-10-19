@@ -1,0 +1,17 @@
+{
+  "format": "vectorlock/v1",
+  "vector_id": "pqc-ctl-02.json",
+  "index": 9,
+  "file_sha256": "ae2977c3331fc36ae45696bf806dbaa1d98f2cb2d4d492054cda3036c079207d",
+  "merkle_root": "d22923ac17d0f1e2244f5dc2dc9913e4c95c446a5b6daa947fe21447c6a38b19",
+  "path": [
+    {
+      "side": "left",
+      "hash": "0a619af0f8685a8d831eac5e5cd85ee01e08c582389e3c652355506741f34695"
+    },
+    {
+      "side": "left",
+      "hash": "9259032f83e9861661c8def74f784879499d59c03a5b3cd8ae47017392fd4102"
+    }
+  ]
+}
