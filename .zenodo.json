@@ -1,0 +1,32 @@
+{
+  "title": "conformance-lock: commit to a private conformance corpus, publish the signed run, keep the contents",
+  "description": "<p>A method for holding a private software conformance corpus and proving publicly that it works without releasing it, plus one worked example: a post-quantum signature verifier conformance set of ten vectors sealed on 2026-10-19, with two vectors revealed and eight held back.</p><p>The method publishes a merkle commitment over every vector, a signed per-vector verdict transcript bound to that root, an external timestamp anchor, and a small revealed floor set with inclusion proofs. A buyer of a held-back corpus recomputes the merkle root from what they received. If it does not match the published root, the delivery is void. That gives a stranger a way to check the work rather than trust a claim.</p><p>The ten-vector sample covers the signature and manifest surface of post-quantum evidence: a suite relabelled to classical with a post-quantum half left in place, a valid ML-DSA-65 signature over the wrong bytes, correct bytes signed by an unregistered key, a post-quantum half attributed to the primary key, a suite order flip, a rewritten batch root, an event added outside the signed range and a narrowed sequence window. All eight were refused with named reasons. Both controls were accepted.</p><p>Corpus root: d22923ac17d0f1e2244f5dc2dc9913e4c95c446a5b6daa947fe21447c6a38b19</p><p>Code is Apache-2.0. The revealed vectors in sample/ require attribution to Security Division, Empire Labs Pty Ltd. The eight held-back vectors are not in this deposit and are available under commercial licence.</p>",
+  "upload_type": "software",
+  "license": "Apache-2.0",
+  "access_right": "open",
+  "language": "eng",
+  "version": "0.1.0",
+  "publication_date": "2026-10-19",
+  "creators": [
+    {
+      "name": "Empire Labs Pty Ltd, Security Division"
+    }
+  ],
+  "keywords": [
+    "conformance testing",
+    "post-quantum",
+    "ML-DSA",
+    "Ed25519",
+    "evidence",
+    "merkle commitment",
+    "agent governance"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/narko4u/conformance-lock",
+      "relation": "isSupplementTo",
+      "resource_type": "software"
+    }
+  ],
+  "notes": "Revealed vectors: pqc-ctl-02 (classical control) and pqc-atk-02 (signature over wrong bytes), each with a merkle inclusion proof against the published corpus root. Every refusal in the results table carries a reason string, and no vector marked NOT_EVALUATED is reported as passing."
+}
