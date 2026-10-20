@@ -70,10 +70,11 @@ python3 vectorlock.py commit --corpus ./corpus --id my-corpus --version 0.1.0 --
 
 # run it, signed
 python3 vectorlock.py run --manifest ./published/manifest.json --corpus ./corpus \
-  --harness "python3 harness.py" --out ./published --sign-key ./signing-key.hex
+  --harness "./harness.py" --expect-path expect --out ./published --sign-key ./signing-key.hex
 
 # a stranger checks the transcript
-python3 vectorlock.py verify-run --manifest ./published/manifest.json --run ./published/run.json
+python3 vectorlock.py verify-run --manifest ./published/manifest.json --run ./published/run.json \
+  --pubkey <pinned-key-hex>
 
 # and checks one revealed vector is a member of the sealed corpus
 python3 vectorlock.py proof --manifest ./published/manifest.json --corpus ./corpus \
@@ -84,6 +85,18 @@ python3 vectorlock.py verify-proof --manifest ./published/manifest.json --corpus
 
 `pytest tests/` covers commitment, inclusion proofs, tamper refusal, a renamed-vector replay, a foreign-manifest proof and the rule that a run which skipped vectors is never reported as green.
 
+### Probe and judge are separate
+
+A harness should only observe. It exits 0 when the implementation accepted the vector, 1 when it refused and 2 when it could not evaluate. The expectation belongs in the vector itself, for example `"expect": "refuse"`, read with `--expect-path`. `vectorlock` then records the expectation, the observation and the match, so an attack vector that is wrongly accepted is `MISMATCH` and can never produce a green run.
+
+A harness that judges instead of observing hides that distinction. The worked example in this repository publishes its harness so the judgement can be read.
+
+### A transcript is only accepted with a pinned key
+
+`verify-run` refuses an unsigned transcript. It also refuses a signed one unless `--pubkey` names the key you already trust. A signature made by a key carried inside the same document proves nothing: anyone can sign their own all-green report. Pass `--allow-unpinned` to inspect a transcript without accepting it as proof.
+
+The transcript must also cover the manifest exactly. Missing vectors, duplicate entries and a summary that disagrees with the results are all refused.
+
 ## The worked example in this repository
 
 `sample/pqc-v0.1.0/` is a post-quantum verifier conformance set. Ten vectors, two revealed, eight held back, sealed on 2026-10-19.
@@ -91,13 +104,18 @@ python3 vectorlock.py verify-proof --manifest ./published/manifest.json --corpus
 | Field | Value |
 |---|---|
 | Corpus root | `d22923ac17d0f1e2244f5dc2dc9913e4c95c446a5b6daa947fe21447c6a38b19` |
-| Result | 10 of 10 behaved as required |
-| Harness digest | `dd71fbee2b152ff2011649ea2ae75360d4be48d301db73940e4deb7eee06d0e4` |
+| Result | 2 accepted as required, 8 refused as required |
+| Harness digest | `6611327f42a1de15289cfeb2a0728be40e142d20a9809e14ef4f9d94f4f9ce16` |
+| Verification key | `d516d34b4040c1e2a06ad51a6cf220edcd1acc67e32c853e589b4a529f5564c4` |
 | Revealed | `pqc-ctl-02` (classical control), `pqc-atk-02` (signature over wrong bytes) |
 
 Check the seal yourself, offline:
 
 ```bash
+python3 vectorlock.py verify-run --manifest sample/pqc-v0.1.0/manifest.json \
+  --run sample/pqc-v0.1.0/run.json \
+  --pubkey d516d34b4040c1e2a06ad51a6cf220edcd1acc67e32c853e589b4a529f5564c4
+
 python3 vectorlock.py verify-proof --manifest sample/pqc-v0.1.0/manifest.json \
   --corpus sample/pqc-v0.1.0 --file sample/pqc-v0.1.0/pqc-atk-02.json \
   --proof sample/pqc-v0.1.0/pqc-atk-02.proof.json
