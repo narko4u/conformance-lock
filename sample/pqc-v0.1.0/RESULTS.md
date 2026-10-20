@@ -10,6 +10,7 @@ Sealed 2026-10-19, transcript re-issued 2026-10-20. Ten vectors, run against the
 | Harness digest | `6611327f42a1de15289cfeb2a0728be40e142d20a9809e14ef4f9d94f4f9ce16` |
 | Verification key | `d516d34b4040c1e2a06ad51a6cf220edcd1acc67e32c853e589b4a529f5564c4` |
 | Transcript | `run.json` in this directory, Ed25519 signed |
+| DOI | [10.5281/zenodo.23487396](https://doi.org/10.5281/zenodo.23487396) |
 
 ## What was tested
 

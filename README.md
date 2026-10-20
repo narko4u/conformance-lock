@@ -4,6 +4,8 @@ Commit to a private conformance corpus, publish the signed run, keep the content
 
 This repository holds two things: the method and one worked example of it. The method is free. The example is the free sample of a corpus we sell.
 
+Archived, citable release: **v0.1.0**, DOI [10.5281/zenodo.23487396](https://doi.org/10.5281/zenodo.23487396).
+
 ---
 
 ## The problem this solves
