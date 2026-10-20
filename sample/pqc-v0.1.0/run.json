@@ -1,0 +1,112 @@
+{
+  "format": "vectorlock/v1",
+  "corpus_id": "pqc-verifier-conformance",
+  "manifest_root": "d22923ac17d0f1e2244f5dc2dc9913e4c95c446a5b6daa947fe21447c6a38b19",
+  "harness": "./harness.py",
+  "harness_sha256": "6611327f42a1de15289cfeb2a0728be40e142d20a9809e14ef4f9d94f4f9ce16",
+  "harness_source": "./harness.py",
+  "expect_path": "expect",
+  "started_at": "2026-10-20T01:16:00Z",
+  "finished_at": "2026-10-20T01:16:00Z",
+  "summary": {
+    "REFUSED_AS_EXPECTED": 8,
+    "PASS": 2
+  },
+  "results": [
+    {
+      "id": "pqc-atk-01.json",
+      "verdict": "REFUSED_AS_EXPECTED",
+      "expect": "refuse",
+      "observed": "refuse",
+      "exit": 1,
+      "output_sha256": "7c53cdd122745267377bc7fb63df2bc6cc6922a84003fe1209a1c57920335d11",
+      "output_head": "REFUSED Manifest declares signature suite ed25519, which names fewer than two schemes"
+    },
+    {
+      "id": "pqc-atk-02.json",
+      "verdict": "REFUSED_AS_EXPECTED",
+      "expect": "refuse",
+      "observed": "refuse",
+      "exit": 1,
+      "output_sha256": "14b96057bed0499a41e5e09f87b0736d1c90a34a05e97b18ca50aea4cd6753cb",
+      "output_head": "REFUSED Manifest countersignature for key key_counter invalid for scheme ML-DSA-65"
+    },
+    {
+      "id": "pqc-atk-03.json",
+      "verdict": "REFUSED_AS_EXPECTED",
+      "expect": "refuse",
+      "observed": "refuse",
+      "exit": 1,
+      "output_sha256": "14b96057bed0499a41e5e09f87b0736d1c90a34a05e97b18ca50aea4cd6753cb",
+      "output_head": "REFUSED Manifest countersignature for key key_counter invalid for scheme ML-DSA-65"
+    },
+    {
+      "id": "pqc-atk-04.json",
+      "verdict": "REFUSED_AS_EXPECTED",
+      "expect": "refuse",
+      "observed": "refuse",
+      "exit": 1,
+      "output_sha256": "2ce9e6cfd87bb96283d0255ecec02c4f68d830e7132f833d826e728fc9c1d906",
+      "output_head": "REFUSED Countersigner key is the primary key"
+    },
+    {
+      "id": "pqc-atk-05.json",
+      "verdict": "REFUSED_AS_EXPECTED",
+      "expect": "refuse",
+      "observed": "refuse",
+      "exit": 1,
+      "output_sha256": "97f0ec6a089f7dbf3af9be46ef182241bd850903b19b191c95ce3a612adb9a1f",
+      "output_head": "REFUSED Manifest signature for key key_primary invalid for scheme Ed25519"
+    },
+    {
+      "id": "pqc-atk-06.json",
+      "verdict": "REFUSED_AS_EXPECTED",
+      "expect": "refuse",
+      "observed": "refuse",
+      "exit": 1,
+      "output_sha256": "97f0ec6a089f7dbf3af9be46ef182241bd850903b19b191c95ce3a612adb9a1f",
+      "output_head": "REFUSED Manifest signature for key key_primary invalid for scheme Ed25519"
+    },
+    {
+      "id": "pqc-atk-07.json",
+      "verdict": "REFUSED_AS_EXPECTED",
+      "expect": "refuse",
+      "observed": "refuse",
+      "exit": 1,
+      "output_sha256": "97f0ec6a089f7dbf3af9be46ef182241bd850903b19b191c95ce3a612adb9a1f",
+      "output_head": "REFUSED Manifest signature for key key_primary invalid for scheme Ed25519"
+    },
+    {
+      "id": "pqc-atk-08.json",
+      "verdict": "REFUSED_AS_EXPECTED",
+      "expect": "refuse",
+      "observed": "refuse",
+      "exit": 1,
+      "output_sha256": "97f0ec6a089f7dbf3af9be46ef182241bd850903b19b191c95ce3a612adb9a1f",
+      "output_head": "REFUSED Manifest signature for key key_primary invalid for scheme Ed25519"
+    },
+    {
+      "id": "pqc-ctl-01.json",
+      "verdict": "PASS",
+      "expect": "accept",
+      "observed": "accept",
+      "exit": 0,
+      "output_sha256": "899d35529258388b5d8da43c26263e048aba75656940bee2be50068c31f7f33a",
+      "output_head": "ACCEPTED suite=ed25519+ml-dsa-65 counter_ok=True"
+    },
+    {
+      "id": "pqc-ctl-02.json",
+      "verdict": "PASS",
+      "expect": "accept",
+      "observed": "accept",
+      "exit": 0,
+      "output_sha256": "bd94dc4338883761ea6a19dbd40bd8a307a0f1fe8174b85d3f55fed7696513de",
+      "output_head": "ACCEPTED suite= counter_ok=True"
+    }
+  ],
+  "signature": {
+    "alg": "Ed25519",
+    "public_key": "d516d34b4040c1e2a06ad51a6cf220edcd1acc67e32c853e589b4a529f5564c4",
+    "sig": "8f5e471b9f5fd28feb4077321851e9946a10cb6d16142676a9e2e39ebb78cfd0d6ef3d8ffe536e61556e992500a314f5682d0233ec40a2a19f06ef1c8046eb0a"
+  }
+}

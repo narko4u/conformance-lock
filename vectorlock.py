@@ -25,6 +25,7 @@ import hashlib
 import json
 import os
 import pathlib
+import shlex
 import subprocess
 import sys
 import time
@@ -202,37 +203,85 @@ def cmd_verify_proof(args) -> int:
     return 0
 
 
+def resolve_expectation(vector_path: pathlib.Path, dotted: str | None) -> str | None:
+    """Read a per-vector expectation such as 'vector.expect' out of the vector file."""
+    if not dotted:
+        return None
+    try:
+        node = json.loads(vector_path.read_text())
+    except Exception:
+        return None
+    for part in dotted.split("."):
+        if not isinstance(node, dict) or part not in node:
+            return None
+        node = node[part]
+    if isinstance(node, str) and node.lower() in ("accept", "refuse"):
+        return node.lower()
+    return None
+
+
+def harness_digest(harness: str, declared: str | None) -> tuple[str, str]:
+    """Hash the harness script that actually gets executed, and refuse to guess."""
+    tokens = shlex.split(harness)
+    candidates = [t for t in tokens if pathlib.Path(t).is_file()]
+    computed, source = None, None
+    if candidates:
+        source = candidates[-1]
+        computed = sha256_file(pathlib.Path(source))
+    if declared and computed and declared != computed:
+        raise SystemExit(f"REFUSED: declared harness digest {declared[:16]}… does not match "
+                         f"the executed harness {computed[:16]}…")
+    if not declared and not computed:
+        raise SystemExit("REFUSED: cannot derive a harness digest from --harness and "
+                         "none was declared with --harness-sha256")
+    return (computed or declared), source
+
+
 def cmd_run(args) -> int:
     manifest = _load(args.manifest)
     corpus = pathlib.Path(args.corpus)
     harness = args.harness
+    digest, source = harness_digest(harness, args.harness_sha256)
     results, started = [], time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     for entry in manifest["files"]:
         path = corpus / entry["path"]
         if sha256_file(path) != entry["sha256"]:
-            results.append({"id": entry["id"], "verdict": "REFUSED",
+            results.append({"id": entry["id"], "verdict": "REFUSED", "expect": None,
                             "detail": "corpus drifted from manifest before run"})
             continue
-        proc = subprocess.run(harness + " " + str(path), shell=True,
+        expected = resolve_expectation(path, args.expect_path)
+        proc = subprocess.run(harness + " " + shlex.quote(str(path)), shell=True,
                               capture_output=True, text=True, timeout=args.timeout)
         out = (proc.stdout + proc.stderr).strip()
-        verdict = {0: "PASS", 1: "FAIL", 2: "NOT_EVALUATED"}.get(proc.returncode, "ERROR")
-        if args.expect_refusal and proc.returncode == args.expect_refusal:
-            verdict = "REFUSED_AS_EXPECTED"
+        observed = {0: "accept", 1: "refuse"}.get(proc.returncode, "unevaluated")
+        if proc.returncode == 2:
+            observed = "unevaluated"
+        if expected:
+            # the vector states what must happen, so a green run is only possible
+            # when the observed behaviour matches it
+            if observed == "unevaluated":
+                verdict = "NOT_EVALUATED"
+            elif observed == expected:
+                verdict = "PASS" if observed == "accept" else "REFUSED_AS_EXPECTED"
+            else:
+                verdict = "MISMATCH"
+        else:
+            verdict = {"accept": "PASS", "refuse": "FAIL", "unevaluated": "NOT_EVALUATED"}[observed]
         results.append({
-            "id": entry["id"], "verdict": verdict, "exit": proc.returncode,
+            "id": entry["id"], "verdict": verdict, "expect": expected, "observed": observed,
+            "exit": proc.returncode,
             "output_sha256": hashlib.sha256(out.encode()).hexdigest(),
             "output_head": out.splitlines()[0][:160] if out else "",
         })
-    summary = {}
-    for r in results:
-        summary[r["verdict"]] = summary.get(r["verdict"], 0) + 1
+    summary = summarize(results)
     run = {
         "format": FORMAT,
         "corpus_id": manifest["corpus_id"],
         "manifest_root": manifest["merkle_root"],
         "harness": harness,
-        "harness_sha256": args.harness_sha256,
+        "harness_sha256": digest,
+        "harness_source": source,
+        "expect_path": args.expect_path,
         "started_at": started,
         "finished_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "summary": summary,
@@ -245,10 +294,20 @@ def cmd_run(args) -> int:
     path = out / "run.json"
     path.write_text(json.dumps(run, indent=2) + "\n")
     print(f"run over      : {manifest['count']} vectors")
+    print(f"harness digest: {digest[:16]}… ({source})")
     print(f"summary       : {summary}")
     print(f"run           : {path}")
-    allowed = {"PASS", "REFUSED_AS_EXPECTED"}
-    return 0 if set(summary) <= allowed else 1
+    return 0 if set(summary) <= GREEN else 1
+
+
+GREEN = {"PASS", "REFUSED_AS_EXPECTED"}
+
+
+def summarize(results: list) -> dict:
+    summary: dict = {}
+    for r in results:
+        summary[r["verdict"]] = summary.get(r["verdict"], 0) + 1
+    return summary
 
 
 def sign_run(run: dict, key_path: str) -> dict:
@@ -276,6 +335,14 @@ def cmd_verify_run(args) -> int:
         print("REFUSED: corpus id mismatch")
         return 1
     sig = run.get("signature")
+    if not sig and not args.allow_unpinned:
+        print("REFUSED: transcript carries no signature, and a transcript that "
+              "anyone can write proves nothing (pass --allow-unpinned to inspect anyway)")
+        return 1
+    if sig and not args.pubkey and not args.allow_unpinned:
+        print("REFUSED: no pinned key supplied, so any self-signed report would pass "
+              "(pass --pubkey, or --allow-unpinned to inspect without authentication)")
+        return 1
     if sig:
         try:
             from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
@@ -297,8 +364,32 @@ def cmd_verify_run(args) -> int:
     else:
         print("signature     : ABSENT (transcript is unauthenticated)")
     print(f"root          : matches manifest ({manifest['merkle_root'][:16]}…)")
-    print(f"summary       : {run['summary']}")
-    refused = [r for r in run["results"] if r["verdict"] not in ("PASS", "REFUSED_AS_EXPECTED")]
+
+    # the transcript must cover the manifest exactly: no omissions, no duplicates,
+    # no entries that were never sealed
+    wanted = [f["id"] for f in manifest["files"]]
+    got = [r["id"] for r in run.get("results", [])]
+    if len(got) != len(set(got)):
+        dupes = sorted({i for i in got if got.count(i) > 1})
+        print(f"REFUSED: transcript repeats {len(dupes)} vector id(s), e.g. {dupes[:3]}")
+        return 1
+    missing = [i for i in wanted if i not in got]
+    unknown = [i for i in got if i not in wanted]
+    if missing:
+        print(f"REFUSED: transcript omits {len(missing)} sealed vector(s), e.g. {missing[:3]}")
+        return 1
+    if unknown:
+        print(f"REFUSED: transcript names {len(unknown)} vector(s) that are not in the manifest, "
+              f"e.g. {unknown[:3]}")
+        return 1
+    recomputed = summarize(run["results"])
+    if recomputed != run.get("summary"):
+        print(f"REFUSED: summary does not match the results "
+              f"(declared {run.get('summary')}, recomputed {recomputed})")
+        return 1
+    print(f"coverage      : all {len(wanted)} sealed vectors present exactly once")
+    print(f"summary       : {recomputed}")
+    refused = [r for r in run["results"] if r["verdict"] not in GREEN]
     if refused:
         print(f"non-passing   : {len(refused)} vectors")
         for r in refused[:5]:
@@ -342,14 +433,21 @@ def build_parser() -> argparse.ArgumentParser:
     r.add_argument("--harness-sha256", default=None)
     r.add_argument("--out", required=True)
     r.add_argument("--timeout", type=int, default=120)
-    r.add_argument("--expect-refusal", type=int, default=None)
+    r.add_argument("--expect-path", default=None,
+                   help="dotted path inside each vector holding 'accept' or 'refuse', "
+                        "for example vector.expect. A run is only green when every "
+                        "vector behaves as its own file demands.")
     r.add_argument("--sign-key", default=None)
     r.set_defaults(func=cmd_run)
 
     vr = sub.add_parser("verify-run")
     vr.add_argument("--manifest", required=True)
     vr.add_argument("--run", required=True)
-    vr.add_argument("--pubkey", default=None)
+    vr.add_argument("--pubkey", default=None,
+                    help="pinned Ed25519 public key hex. Required unless --allow-unpinned "
+                         "is passed, because a self-signed report proves nothing.")
+    vr.add_argument("--allow-unpinned", action="store_true",
+                    help="inspect an unauthenticated transcript without accepting it as proof")
     vr.set_defaults(func=cmd_verify_run)
     return p
 
